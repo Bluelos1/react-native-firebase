@@ -2,8 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import CartItem from '../components/CartItem';
 import Button from '../components/Button';
+import firestore from '@react-native-firebase/firestore';
+
+
+
 
 const CartScreen = ({ navigation }) => {
+    const [products, setProducts] = useState([]);
+
   const [cartItems, setCartItems] = useState([
     {
       id: '1',
@@ -20,6 +26,24 @@ const CartScreen = ({ navigation }) => {
       image: require('../assets/images/burger.png'),
     },
   ]);
+
+  useEffect(() => {
+    const subscriber = firestore()
+      .collection('products')
+      .onSnapshot(querySnapshot => {
+        const productsArray = [];
+
+        querySnapshot.forEach(documentSnapshot => {
+          productsArray.push({
+            ...documentSnapshot.data(),
+            key: documentSnapshot.id,
+          });
+        });
+
+        setProducts(productsArray);
+      });
+    return () => subscriber();
+  }, []);
 
   const handleRemoveItem = (itemId) => {
     setCartItems(cartItems.filter(item => item.id !== itemId));
